@@ -1,0 +1,277 @@
+; xsokoban_curated_01
+; tiny single-box corridor — sanity check for the env
+#####
+#@$.#
+#####
+
+; xsokoban_curated_02
+; one box, single corner — exercises the dead-square detector
+######
+#@   #
+# $  #
+#  . #
+######
+
+; xsokoban_curated_03
+; two boxes in a line — minimal multi-box ordering test
+########
+#@ $ $.#
+#      #
+#    . #
+########
+
+; xsokoban_curated_04
+; symmetric two-box puzzle — both A* and BFS finish quickly
+#######
+#  .  #
+# $@$ #
+#  .  #
+#######
+
+; xsokoban_curated_05
+; L-bend — forces a non-trivial push direction
+#######
+#@    #
+###$# #
+#  .  #
+#######
+
+; xsokoban_curated_06
+; three boxes on a single row — first PI-corral candidate
+#########
+#@$ $ $.#
+#       #
+#  . .  #
+#########
+
+; xsokoban_curated_07
+; player must walk around to push from the far side
+########
+#  .#  #
+#   #  #
+# $ # @#
+#      #
+########
+
+; xsokoban_curated_08
+; classic two-room layout — small enough for BFS, has dead corners
+#########
+#  .#   #
+# $ #$. #
+#   @   #
+#########
+
+; xsokoban_curated_09
+; tunnel macro candidate — single corridor between rooms
+###########
+#@ $     .#
+###########
+
+; xsokoban_curated_10
+; freeze deadlock if box pushed up against the wall
+########
+#  $ . #
+#  $ . #
+#  @   #
+########
+
+; xsokoban_curated_11
+; tight corridor with two boxes — exercises push order
+##########
+#@$ $   .#
+######   #
+#       .#
+##########
+
+; xsokoban_curated_12
+; cross-shaped interior, four goals at the arms, 4 boxes / 4 goals
+##########
+####  ####
+####. ####
+####$ ####
+#        #
+# .$ @ $.#
+#        #
+####$ ####
+####. ####
+####  ####
+##########
+
+; xsokoban_curated_13
+; medium open room, four boxes
+##########
+#        #
+# .  $ @ #
+# $    . #
+# .  $ . #
+#    $   #
+##########
+
+; xsokoban_curated_14
+; spiral — single goal at the centre
+##########
+#        #
+# ###### #
+# #    # #
+# # @$ # #
+# # ##.# #
+# #    # #
+# ###### #
+#        #
+##########
+
+; xsokoban_curated_15
+; two parallel corridors — independent subproblems
+#############
+#@  $    .  #
+#############
+#   $    .  #
+#############
+
+; xsokoban_curated_16
+; box must detour around a central wall block
+##########
+#@       #
+#  ####  #
+#  $  .  #
+#        #
+##########
+
+; xsokoban_curated_17
+; box must be pushed up, not just sideways
+########
+#      #
+#  ..  #
+#  $$  #
+#  @   #
+########
+
+; xsokoban_curated_18
+; staggered goals — order of pushes matters
+###########
+#@        #
+# $$$     #
+#         #
+#    ...  #
+###########
+
+; xsokoban_curated_19
+; three boxes, three surrounding goals — push-direction selection
+#######
+#  .  #
+#.$ $.#
+#  $  #
+#  @  #
+#######
+
+; xsokoban_curated_20
+; box behind a wall pocket — only one valid push direction
+##########
+#  ##    #
+#  ##.$@ #
+#  ##    #
+##########
+
+; xsokoban_curated_21
+; small 4x4 interior, 3 boxes, 3 goals
+##########
+#  ..   .#
+#  $ $   #
+#    $@  #
+#        #
+##########
+
+; xsokoban_curated_22
+; "ribbon" — long thin board, two boxes
+####################
+#@ $        $     .#
+####################
+#                 .#
+####################
+
+; xsokoban_curated_23
+; pocket layout — boxes must enter the pocket in order
+##########
+#       .#
+# ##### .#
+# #    #.#
+# # $$$# #
+# # @  # #
+# ###### #
+#        #
+##########
+
+; xsokoban_curated_24
+; large open room, 5 boxes, freezable corners
+############
+#          #
+#  .  .    #
+#   $   $  #
+#  $   .   #
+#   .  $   #
+#   $   .  #
+#       @  #
+#          #
+############
+
+; xsokoban_curated_25
+; serpentine path — tests tunnel collapsing
+###############
+#@            #
+############# #
+#             #
+# #############
+#  $       .  #
+###############
+
+; xsokoban_curated_26
+; two-pocket layout — 5 boxes / 5 goals, central hub for the player
+#############
+#  ..   ..  #
+#  $$   $$  #
+#     @     #
+#  ###.###  #
+#     $     #
+#############
+
+; xsokoban_curated_27
+; 4 boxes around a central pillar
+##########
+#  .  .  #
+#        #
+#  ####  #
+#  #  #  #
+# $#@ #$ #
+#  ####  #
+#        #
+#  .  .  #
+# $    $ #
+##########
+
+; xsokoban_curated_28
+; asymmetric — goals all on one side, 4 boxes + 4 goals
+##############
+#          ..#
+# @ $$$$    .#
+#           .#
+##############
+
+; xsokoban_curated_29
+; long-thin tier-hard analogue — many forced pushes, 5 boxes / 5 goals
+########################
+#@ $ $ $ $ $ . . . . . #
+########################
+
+; xsokoban_curated_30
+; biggest curated level — symmetric two-room, 8 boxes / 8 goals
+###############
+#      #      #
+#  $$  #  $$  #
+#      #      #
+#  ..  #  ..  #
+#      @      #
+#  ..  #  ..  #
+#      #      #
+#  $$  #  $$  #
+#      #      #
+###############
