@@ -43,6 +43,7 @@ from sokoban.solvers.astar import (
     astar_full,
 )
 from sokoban.solvers.idastar import idastar_baseline, idastar_full
+from sokoban.solvers.hybrid import hybrid_uniform_prior
 from sokoban.viz.animate import animate_solution
 from sokoban.viz.render import render_ascii
 
@@ -60,6 +61,11 @@ SOLVERS: Dict[str, Callable[[], Solver]] = {
     "astar+all": astar_full,
     "idastar": idastar_baseline,
     "idastar+all": idastar_full,
+    # Hybrid degrades to astar+all when no policy is loaded, so it is
+    # always safe to register here. The ``hybrid-ppo`` variant — which
+    # consumes a checkpoint path — is built on demand from the
+    # ``solve --hybrid-checkpoint`` flag below.
+    "hybrid-uniform": hybrid_uniform_prior,
 }
 
 
@@ -275,7 +281,43 @@ def build_parser() -> argparse.ArgumentParser:
     bench.add_argument("--no-progress", action="store_true")
     bench.set_defaults(func=cmd_benchmark)
 
+    # ------------------------------------------------------------------
+    # RL sub-commands. These forward to ``sokoban.rl.{train,evaluate}``
+    # and clearly report when the [rl] extra is missing.
+    # ------------------------------------------------------------------
+    rl_train = sub.add_parser(
+        "rl-train",
+        help="train the PPO + DRC policy (requires [rl] extra)",
+        add_help=False,
+    )
+    rl_train.set_defaults(func=cmd_rl_train)
+
+    rl_eval = sub.add_parser(
+        "rl-eval",
+        help="evaluate a trained PPO checkpoint (requires [rl] extra)",
+        add_help=False,
+    )
+    rl_eval.set_defaults(func=cmd_rl_eval)
+
     return p
+
+
+def cmd_rl_train(args: argparse.Namespace) -> int:
+    """Pass-through to ``sokoban.rl.train.main``.
+
+    Forwarding lets the heavy ``[rl]`` imports stay lazy: the CLI can
+    be invoked for environment + classical-search sub-commands on a
+    machine that does not have ``torch`` installed without a crash.
+    """
+    from sokoban.rl.train import main as train_main
+
+    return train_main(argv=sys.argv[2:])
+
+
+def cmd_rl_eval(args: argparse.Namespace) -> int:
+    from sokoban.rl.evaluate import main as eval_main
+
+    return eval_main(argv=sys.argv[2:])
 
 
 def main(argv: list[str] | None = None) -> int:

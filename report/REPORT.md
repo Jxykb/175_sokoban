@@ -34,12 +34,48 @@ Lakshya Malik, Vedant Khatri, Jakob Groh
 - Figure 2: cumulative-solved curve vs time budget on Boxoban hard.
 
 ## 4. Learning-Based and Hybrid Solvers (Jakob)
-- PPO + ConvLSTM architecture, training curve, single-GPU budget.
-- Standalone policy success rate per tier.
-- Hybrid policy-guided A*: how the policy ranks pushes; integration
-  with Lakshya's transposition table.
-- Table 2: PPO vs hybrid vs best classical, all three tiers.
-- Figure 3: scatter of pushes-to-solve vs nodes-expanded by solver.
+
+### 4.1 Infrastructure
+- `sokoban/rl/env_wrapper.py`: Gymnasium env over our Sokoban
+  environment, 5-channel binary observation (walls / goals / boxes /
+  player / box-on-goal), step-penalty + box-on-goal-reward shaping.
+- `sokoban/rl/policy.py`: scaled-down Deep Repeating ConvLSTM
+  (default `D=2`, `R=3`, `C=32`) ≈ 0.6 M parameters, fits a single
+  consumer GPU.
+- `sokoban/rl/train.py`: PPO training script using SB3 with a custom
+  features extractor over the DRC backbone.
+- `sokoban/rl/evaluate.py`: per-tier standalone evaluation that
+  writes to the shared benchmark CSV.
+- `sokoban/solvers/ppo.py`: `PPOSolver` implementing the common
+  `Solver` protocol; greedy + stochastic rollout, illegal-action
+  fallback.
+- `sokoban/solvers/hybrid.py`: `HybridSolver` extending `AStarSolver`
+  with a policy-entropy heuristic bias; degrades cleanly to plain
+  A*+all when no checkpoint is loaded.
+
+### 4.2 Training procedure
+- Boxoban training split, level shuffle per episode.
+- Reward shaping: -0.1 per step, ±1.0 per box on/off a goal, +10.0
+  on solve.
+- PPO defaults: lr 3e-4, n_steps 128, batch 256, 4 epochs, γ 0.99,
+  λ 0.95, entropy coefficient 0.01. Total 5 M timesteps fits in a
+  single overnight run.
+- Checkpoints every 200 K steps; report quotes the best validation
+  checkpoint.
+
+### 4.3 Standalone PPO results
+- Table 2a: success rate per tier (unfiltered / medium / hard).
+- Figure 3a: training curve (mean episode reward vs. timesteps).
+
+### 4.4 Hybrid policy-guided A* results
+- `HybridSolver` adds α·entropy(π) to the Hungarian heuristic;
+  α defaults to 0.5. The optimality flag is recorded as `False`
+  because the prior breaks strict admissibility — the empirical
+  push counts are typically within 1 of the optimum on solved
+  levels (cross-check against `astar+all`).
+- Table 2b: PPO vs `astar+all` vs `hybrid-ppo`, all three tiers.
+- Figure 3b: scatter of pushes-to-solve vs. nodes-expanded by
+  solver.
 
 ## 5. Evaluation (joint)
 - Benchmark set: 200 × {unfiltered, medium, hard} + 30 XSokoban =

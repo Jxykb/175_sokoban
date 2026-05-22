@@ -15,7 +15,8 @@ along the work division agreed in `Sokoban_Work_Division_Elite.docx`:
 | `sokoban/data/`            | Vedant  | Boxoban loader + 30 curated XSokoban levels             |
 | `sokoban/solvers/bfs.py`   | Vedant  | Reference BFS solver (sanity check, not a contribution) |
 | `sokoban/solvers/{astar,idastar,heuristics,deadlock,macros,transposition}.py` | Lakshya | A* / IDA* with Hungarian heuristic, dead-square / freeze / tunnel / PI-corral pruning |
-| `sokoban/solvers/ppo*`     | Jakob   | PPO policy and hybrid policy-guided A*                  |
+| `sokoban/rl/`              | Jakob   | Gymnasium wrapper, DRC ConvLSTM policy, PPO training + eval pipeline |
+| `sokoban/solvers/{ppo,hybrid}.py` | Jakob | `PPOSolver` (inference-time) + `HybridSolver` (policy-guided A*) |
 
 ## Quick start
 
@@ -69,6 +70,37 @@ Following Section 2 of the proposal, the solver output uses lowercase
 benchmark harness records the trace verbatim in the `solution_len_chars`
 and `pushes` columns.
 
+## Learning-based stack (optional)
+
+The RL / hybrid solvers are gated behind an optional extra so the
+core package stays lightweight. To install:
+
+```bash
+pip install -e '.[rl]'
+```
+
+This pulls in PyTorch, Stable-Baselines3, and Gymnasium (~1.5 GB).
+After installation:
+
+```bash
+# Train PPO on the Boxoban unfiltered split (single-GPU run)
+sokoban rl-train --tier unfiltered --total-timesteps 5_000_000 --save runs/ppo
+
+# Evaluate a trained checkpoint on all three Boxoban tiers
+sokoban rl-eval --checkpoint runs/ppo/ppo_final.zip --csv bench_results/ppo.csv
+
+# Use the policy as a heuristic prior inside A*
+# (programmatic for now; CLI flag pending Jakob's checkpoint)
+python -c "
+from sokoban.solvers.hybrid import hybrid_with_checkpoint
+solver = hybrid_with_checkpoint('runs/ppo/ppo_final.zip', alpha=0.5)
+"
+```
+
+The full DRC architecture lives in `sokoban/rl/policy.py` and defaults
+to a scaled-down `D=2, R=3, C=32` configuration that fits a consumer
+GPU in ~12 hours per tier.
+
 ## CSV schema
 
 Each benchmark run appends rows to a CSV with the columns documented in
@@ -87,6 +119,9 @@ solver families.
 | `astar+all`       | classical | full pruning suite (dead + freeze + tunnels + PI-corral) |
 | `idastar`         | classical | IDA* + Hungarian, no pruning |
 | `idastar+all`     | classical | IDA* + full pruning suite |
+| `hybrid-uniform`  | hybrid    | A*+all with no policy prior (sanity-check baseline) |
+| `ppo` *(planned)* | learned   | trained PPO checkpoint; needs `pip install -e '.[rl]'` and a saved checkpoint |
+| `hybrid-ppo` *(planned)* | hybrid | PPO-policy-guided A* once Jakob ships a checkpoint |
 
 Each variant is recorded under its own `solver` column in the
 benchmark CSV so the report can quote the marginal contribution of

@@ -22,6 +22,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4"]
+# Heavyweight stack for the RL / hybrid solver. Kept optional so the
+# core environment and classical-search solvers work without PyTorch
+# installed (~1.5 GB extra otherwise).
+rl = [
+  "torch>=2.1",
+  "stable-baselines3>=2.2",
+  "gymnasium>=0.29",
+]
 
 [project.scripts]
 sokoban = "sokoban.cli:main"
