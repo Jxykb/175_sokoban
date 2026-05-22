@@ -35,14 +35,31 @@ from sokoban.env.moves import is_solved
 from sokoban.env.parser import parse_xsb_file
 from sokoban.solvers.base import Solver
 from sokoban.solvers.bfs import BFSPushSolver
+from sokoban.solvers.astar import (
+    astar_baseline,
+    astar_dead,
+    astar_freeze,
+    astar_tunnels,
+    astar_full,
+)
+from sokoban.solvers.idastar import idastar_baseline, idastar_full
 from sokoban.viz.animate import animate_solution
 from sokoban.viz.render import render_ascii
 
 
-# Registry of solver factories. Lakshya's A*/IDA* and Jakob's
-# RL/hybrid will register themselves here when their modules land.
+# Registry of solver factories. Each entry is a no-arg constructor so
+# the CLI can spin a fresh solver per invocation; this matters for
+# stateful solvers (transposition tables, learned policies) that
+# should not leak state across runs.
 SOLVERS: Dict[str, Callable[[], Solver]] = {
     "bfs-push": BFSPushSolver,
+    "astar": astar_baseline,
+    "astar+dead": astar_dead,
+    "astar+freeze": astar_freeze,
+    "astar+tunnels": astar_tunnels,
+    "astar+all": astar_full,
+    "idastar": idastar_baseline,
+    "idastar+all": idastar_full,
 }
 
 

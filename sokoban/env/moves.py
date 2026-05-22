@@ -226,16 +226,22 @@ def _simple_dead_squares(board: Board) -> FrozenSet[Pos]:
     return frozenset(c for c in board.floor if c not in reachable)
 
 
-_DEAD_SQUARE_CACHE: dict[int, FrozenSet[Pos]] = {}
+_DEAD_SQUARE_CACHE: dict[Board, FrozenSet[Pos]] = {}
 
 
 def dead_squares(board: Board) -> FrozenSet[Pos]:
-    """Cached accessor for the static dead-square map of ``board``."""
-    key = id(board)
-    cached = _DEAD_SQUARE_CACHE.get(key)
+    """Cached accessor for the static dead-square map of ``board``.
+
+    Keyed by the (frozen, hashable) ``Board`` itself; we deliberately
+    avoid ``id(board)`` because Python recycles ids across short-lived
+    ``Board`` instances, which would cause the cache to return the
+    wrong map for a new level that happens to land at a reused
+    address.
+    """
+    cached = _DEAD_SQUARE_CACHE.get(board)
     if cached is None:
         cached = _simple_dead_squares(board)
-        _DEAD_SQUARE_CACHE[key] = cached
+        _DEAD_SQUARE_CACHE[board] = cached
     return cached
 
 

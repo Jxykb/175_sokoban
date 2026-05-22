@@ -14,7 +14,7 @@ along the work division agreed in `Sokoban_Work_Division_Elite.docx`:
 | `sokoban/bench/`           | Vedant  | Benchmark harness, CSV schema, batch runner             |
 | `sokoban/data/`            | Vedant  | Boxoban loader + 30 curated XSokoban levels             |
 | `sokoban/solvers/bfs.py`   | Vedant  | Reference BFS solver (sanity check, not a contribution) |
-| `sokoban/solvers/astar*`   | Lakshya | A* / IDA* with Hungarian heuristic and pruning          |
+| `sokoban/solvers/{astar,idastar,heuristics,deadlock,macros,transposition}.py` | Lakshya | A* / IDA* with Hungarian heuristic, dead-square / freeze / tunnel / PI-corral pruning |
 | `sokoban/solvers/ppo*`     | Jakob   | PPO policy and hybrid policy-guided A*                  |
 
 ## Quick start
@@ -31,15 +31,17 @@ sokoban info xsokoban
 # Print one level
 sokoban play xsokoban --index 0
 
-# Solve a single level with the reference BFS solver
-sokoban solve xsokoban --index 0
+# Solve a single level with any registered solver
+sokoban solve xsokoban --index 0                       # default: bfs-push
+sokoban solve xsokoban --index 3 --solver astar+all
+sokoban solve xsokoban --index 3 --solver idastar+all
 
 # Solve + write a GIF of the step-by-step solution
 sokoban solve xsokoban --index 0 --animate level_01.gif
 
 # Run a full benchmark, write per-level rows to CSV
 sokoban benchmark xsokoban boxoban:medium@50 \
-    --solver bfs-push --csv bench_results/baseline.csv
+    --solver astar+all --csv bench_results/astar_full.csv
 
 # Run tests
 pytest
@@ -73,17 +75,42 @@ Each benchmark run appends rows to a CSV with the columns documented in
 `report/REPORT.md` (Appendix A). The same schema is shared across all
 solver families.
 
+## Available solvers
+
+| name              | family    | notes |
+| ----------------- | --------- | ----- |
+| `bfs-push`        | reference | optimal in pushes; sanity-check baseline (Vedant) |
+| `astar`           | classical | A* + Hungarian heuristic, no pruning (Lakshya) |
+| `astar+dead`      | classical | + precomputed dead-square map |
+| `astar+freeze`    | classical | + recursive freeze-deadlock check |
+| `astar+tunnels`   | classical | + tunnel macro collapsing |
+| `astar+all`       | classical | full pruning suite (dead + freeze + tunnels + PI-corral) |
+| `idastar`         | classical | IDA* + Hungarian, no pruning |
+| `idastar+all`     | classical | IDA* + full pruning suite |
+
+Each variant is recorded under its own `solver` column in the
+benchmark CSV so the report can quote the marginal contribution of
+each pruning technique (proposal Section 4.2).
+
 ## Repo layout
 
 ```
 sokoban/
-  env/        XSB parser, board, move/push generation, dead-square map
-  viz/        ASCII + matplotlib rendering, step-by-step animation
-  bench/      Benchmark harness, CSV I/O, per-tier time budgets
-  data/       Boxoban loader, curated XSokoban set
-    levels/   xsokoban_curated.xsb (30 levels, packaged with the wheel)
-  solvers/    Common solver interface + reference BFS
-  cli.py      sokoban {info,play,solve,animate,benchmark}
-tests/        pytest suite
-report/       REPORT.md scaffold for final submission
+  env/             XSB parser, board, move/push generation, dead-square map
+  viz/             ASCII + matplotlib rendering, step-by-step animation
+  bench/           Benchmark harness, CSV I/O, per-tier time budgets
+  data/            Boxoban loader, curated XSokoban set
+    levels/        xsokoban_curated.xsb (30 levels, packaged with the wheel)
+  solvers/
+    base.py        Solver protocol + SolveResult
+    bfs.py         Reference push-BFS (Vedant)
+    heuristics.py  Hungarian-assignment + push-distance maps (Lakshya)
+    deadlock.py    Dead squares, freeze-deadlock, PI-corral (Lakshya)
+    macros.py      Tunnel macro collapsing (Lakshya)
+    transposition.py  Push-state TT keyed by (boxes, canonical player) (Lakshya)
+    astar.py       A* with configurable pruning toggles (Lakshya)
+    idastar.py     IDA* sharing heuristic + pruning (Lakshya)
+  cli.py           sokoban {info,play,solve,animate,benchmark}
+tests/             pytest suite (38 tests)
+report/            REPORT.md scaffold for final submission
 ```
